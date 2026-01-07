@@ -1,65 +1,105 @@
-# ICU 30-Day Mortality Risk Stratification (MIMIC-III) — Baseline vs Full + Power BI
+# ICU 30-Day Mortality Risk Stratification (MIMIC-III)
 
-## What this is
-A small end-to-end healthcare analytics project using **MIMIC-III** to predict **30-day mortality after ICU admission**.
+## What is this project?
+This project builds a **30-day mortality risk stratification model for ICU patients** using real-world clinical data from the **MIMIC-III database**.
 
-The key point is not “a fancy model”, but demonstrating that **early clinical information improves decision usefulness**:
-- **Baseline**: Age + Gender
-- **Full model**: Age + Gender + **first 24h lab tests**
-
-Outputs are validated as **risk stratification** (Low/Medium/High) and visualized in **Power BI**.
-
----
-
-## Why I built it
-Hiring teams often ask whether I can work with **raw clinical databases** and build a complete pipeline:
-- define a cohort correctly
-- avoid time leakage
-- engineer features
-- compare models
-- communicate results in a business-friendly dashboard
-
-This project is designed to demonstrate exactly that.
+The goal is not just to train a predictive model, but to demonstrate:
+- how to work with a raw medical database,
+- how to compare a simple baseline with more informative models,
+- and how to communicate results clearly using **Power BI**.
 
 ---
 
-## Data (not included)
-Data come from **MIMIC-III** (restricted access).  
-This repository includes **code + figures only** (no raw patient data).
+## Why this matters
+In healthcare analytics, a model with a higher AUC is not always more useful in practice.  
+What matters is whether the model can **separate patients into meaningful risk groups** that align with real clinical outcomes.
 
-Tables used:
-- PATIENTS, ADMISSIONS, ICUSTAYS, LABEVENTS
-
----
-
-## Method (high level)
-1. Build ICU-stay level cohort (**ICUSTAY_ID**) and label outcome: `death_30d`
-2. Baseline features: age, gender
-3. Full features: lab values within **first 24h of ICU** (aggregations like mean/min/max)
-4. Train/test split and model comparison (ROC-AUC + PR-AUC)
-5. Export predictions and validate risk stratification using **observed mortality by risk group**
-6. Visualize in **Power BI**
+This project focuses on:
+- proper cohort construction,
+- avoiding data leakage,
+- and validating models via **observed mortality by risk group**, not metrics alone.
 
 ---
 
-## Results (what to look at)
-### 1) Baseline vs Full risk stratification
-- Baseline shows limited separation
-- Full model shows clear separation (High-risk group has much higher observed mortality)
+## Data source
+- **MIMIC-III** (public ICU database, restricted access)
+- Tables used:
+  - PATIENTS
+  - ADMISSIONS
+  - ICUSTAYS
+  - LABEVENTS
 
-**Power BI / Figures**
-- `figures/full_risk_group_mortality.png`
-- `figures/baseline_risk_group_mortality.png`
-- `powerbi/dashboard.png`
-
----
-
-## Repo contents
-- `*.ipynb` : full pipeline (data loading → features → modeling → export)
-- `figures/` : plots used in the write-up
-- `powerbi/` : dashboard screenshot(s)
+> Raw patient-level data are not included in this repository.
 
 ---
 
-## Key takeaway
-Early ICU laboratory measurements provide meaningful clinical signal beyond demographics alone, enabling clearer **risk stratification** for 30-day mortality.
+## Study design (high level)
+- Unit of analysis: **ICU stay (ICUSTAY_ID)**
+- Population: adult ICU patients
+- Outcome: **death within 30 days after ICU admission**
+- Feature window: **first 24 hours in ICU only**
+
+---
+
+## Models compared
+### Baseline model
+- Age  
+- Gender  
+
+### Full model
+- Age  
+- Gender  
+- Laboratory measurements from the **first 24 hours in ICU**  
+  (aggregated statistics such as mean / min / max)
+
+### Algorithms
+- Logistic Regression  
+- Random Forest  
+- Histogram-based Gradient Boosting  
+
+Random Forest achieved the best overall performance and was used for downstream analysis.
+
+---
+
+## Key results
+### Risk stratification performance
+Predicted probabilities were grouped into:
+- **Low risk**
+- **Medium risk**
+- **High risk**
+
+Observed 30-day mortality was then calculated for each group.
+
+**Baseline model**
+- Limited separation between risk groups
+
+![Baseline Risk Group Mortality](baseline_risk_group_mortality.png)
+
+**Full model**
+- Clear and monotonic separation
+- High-risk group shows substantially higher observed mortality
+
+![Full Risk Group Mortality](full_risk_group_mortality.png)
+
+---
+
+## Visualization (Power BI)
+Model outputs were exported and visualized using **Power BI** to support decision-oriented interpretation.
+
+Included in this repository:
+- Power BI dashboard file (`.pbix`)
+- Risk group comparison and outcome plots
+
+---
+
+## Repository contents
+- `MIMIC_*.ipynb`  
+  End-to-end pipeline: cohort creation, feature engineering, modeling, and export
+- `baseline_risk_group_mortality.png`  
+- `full_risk_group_mortality.png`  
+- `powerbidashboard.pbix`
+
+---
+
+## Takeaway
+Early laboratory data from the first 24 hours of ICU admission provide meaningful clinical signal beyond demographics alone, enabling clearer and more actionable **risk stratification** for 30-day mortality.
